@@ -1,20 +1,39 @@
 ---
 
-- hosts: server2
+- hosts: all
   become: true
   tasks:
 
     - name: Update Repository
       apt:
         update_cache: yes
+      when: ansible_distribution == "Ubuntu"
 
     - name: Install apache2 package
       apt:
         name: apache2
         state: latest
+      when: ansible_distribution == "Ubuntu"
 
     - name: Add php support for Apache
       apt:
         name: libapache2-mod-php
         state: latest
+      when: ansible_distribution == "Ubuntu"
 
+    - name: Update Repository
+      dnf:
+        update_cache: yes
+      when: ansible_distribution == "OracleLinux"
+
+    - name: Install apache2 package
+      dnf:
+        name: httpd
+        state: latest
+      when: ansible_distribution == "OracleLinux"
+
+    - name: Add php support for Apache
+      dnf:
+        name: php
+        state: latest
+      when: ansible_distribution == "OracleLinux"
