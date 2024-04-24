@@ -35,6 +35,30 @@
         state: latest
       when: ansible_distribution == "OracleLinux"
 
+    - name: Start httpd
+      tags: apache,apache2,httpd
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+      when: ansible_distribution == "OracleLinux" 
+
+    - name: Change e-mail address for admin (OracleLiniux)
+      tags: apache,httpd,admin, e-mail
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^ServerAdmin'
+        line: ServerAdmin ayobamivikky@gmail.com
+      when: ansible_distribution == "OracleLinux"
+      register: httpd
+
+    - name: Restart httpd (OracleLinux)
+      tags: apache,httpd
+      service:
+        name: httpd
+        state: restarted
+      when: ansible_distribution == "OracleLinux" && httpd.changed
+
     - name: Copy default html file to sites (on Ubuntu Linux)
       tags: apache,apache2,httpd
       copy:
@@ -83,6 +107,22 @@
       name: samba
       state: latest
 
+  - name: Install unzip
+    tags: zip
+    package:
+      name: unzip
+      state: latest
+
+  - name: Install OpenTofu
+    unarchive:
+      src: https://github.com/opentofu/opentofu/releases/download/v1.6.2/tofu_1.6.2_linux_amd64.zip 
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      owner: root
+      group: root
+
+
 - hosts: WorkStations
   become: true
   tasks:
@@ -94,4 +134,4 @@
         - gedit
         - vim
       state: latest
-        
+    
