@@ -1,3 +1,17 @@
 # Hostnames or ip addresses of servers are to be added here
-server1	#or ip address of server1
-server2 #or ip address of server2
+
+[web_servers]
+server1	#or ip address of server1 (Oracle Linux)
+server2 #or ip address of server2 (Ubuntu Linux)
+
+[db_servers]
+server1	#or ip address of server1 (Oracle Linux)
+
+[file_servers]
+server1	#or ip address of server1 (Oracle Linux)
+server2 #or ip address of server2 (Ubuntu Linux)
+
+[WorkStations]
+server1	#or ip address of server1 (Oracle Linux)
+server2 #or ip address of server2 (Ubuntu Linux)
+
