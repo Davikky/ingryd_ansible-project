@@ -1,11 +1,11 @@
   # to run this playbook
-#   $ ansible-playbook --ask-become srv_config.yml
+#   $ ansible-playbook --ask-become srv_config_combined.yml
   # to list tags
-#   $ ansible-playbook --list-tags srv_config.yml
+#   $ ansible-playbook --list-tags srv_config_combined.yml
   # to run playbook with a specific tag
-#   $ ansible-playbook --tags [tag-name] --ask-become srv_config.yml
+#   $ ansible-playbook --tags [tag-name] --ask-become srv_config_combined.yml
   # to run this playbook as remote_user oga
-#   $ ansible-playbook srv_config.yml
+#   $ ansible-playbook srv_config_combined.yml
 ---
 
 - hosts: all
