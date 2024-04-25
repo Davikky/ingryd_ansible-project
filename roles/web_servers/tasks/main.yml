@@ -1,0 +1,74 @@
+  # to run this playbook
+#   $ ansible-playbook --ask-become srv_config.yml
+  # to list tags
+#   $ ansible-playbook --list-tags srv_config.yml
+  # to run playbook with a specific tag
+#   $ ansible-playbook --tags [tag-name] --ask-become srv_config.yml
+  # to run this playbook as remote_user oga
+#   $ ansible-playbook srv_config.yml
+
+- name: Install apache2 & php packages
+  tags: apache,apache2,php,ubuntu
+  apt:
+    update_cache: yes
+    name:
+      - apache2
+      - libapache2-mod-php
+    state: latest
+  when: ansible_distribution == "Ubuntu"
+
+
+- name: Install apache2 & php packages
+  tags: apache,httpd,php,oracleLinux
+  dnf:
+    update_cache: yes
+    name:
+      - httpd
+      - php
+    state: latest
+  when: ansible_distribution == "OracleLinux"
+
+- name: Start httpd
+  tags: apache,apache2,httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+  when: ansible_distribution == "OracleLinux" 
+
+- name: Change e-mail address for admin (OracleLiniux)
+  tags: apache,httpd,admin, e-mail
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^ServerAdmin'
+    line: ServerAdmin ayobamivikky@gmail.com
+  when: ansible_distribution == "OracleLinux"
+  register: httpd
+
+- name: Restart httpd (OracleLinux)
+  tags: apache,httpd
+  service:
+    name: httpd
+    state: restarted
+  when: ansible_distribution == "OracleLinux" and httpd.changed
+
+- name: Copy default html file to sites (on Ubuntu Linux)
+  tags: apache,apache2,httpd
+  copy:
+    src: default_site.html
+    dest: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: 0644
+  when: ansible_distribution == "Ubuntu"
+
+- name: Copy default html file to sites (on Oracle Linux)
+  tags: apache,apache2,httpd
+  copy:
+    src: default_site.html
+    dest: /var/www/html/index.html
+    owner: apache
+    group: apache
+    mode: 0644
+  when: ansible_distribution == "OracleLinux"
+

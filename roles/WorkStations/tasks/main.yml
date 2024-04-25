@@ -1,0 +1,17 @@
+  # to run this playbook
+#   $ ansible-playbook --ask-become srv_config.yml
+  # to list tags
+#   $ ansible-playbook --list-tags srv_config.yml
+  # to run playbook with a specific tag
+#   $ ansible-playbook --tags [tag-name] --ask-become srv_config.yml
+  # to run this playbook as remote_user oga
+#   $ ansible-playbook srv_config.yml
+
+- name: Install gedit and vim on WorkStations
+  tags: gedit,vim,text_editors
+  package:
+    name:
+      - gedit
+      - vim
+    state: latest
+  

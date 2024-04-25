@@ -1,0 +1,43 @@
+  # to run this playbook
+#   $ ansible-playbook --ask-become srv_config.yml
+  # to list tags
+#   $ ansible-playbook --list-tags srv_config.yml
+  # to run playbook with a specific tag
+#   $ ansible-playbook --tags [tag-name] --ask-become srv_config.yml
+  # to run this playbook as remote_user oga
+#   $ ansible-playbook srv_config.yml
+
+- name: Install Updates (Oracle Linux)
+  dnf:
+    update_only: yes
+    update_cache: yes
+  changed_when: false
+  when: ansible_distribution == "OracleLinux"
+
+- name: Install Updates (Ubuntu Linux)
+  apt:
+    update_cache: yes
+  changed_when: false
+  when: ansible_distribution == "Ubuntu"
+
+- name: Add ssh key for user oga
+  tags: always
+  authorized_key:
+    user: oga
+    key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICg1N3h0m0XujlaIn58Yv5d5EgA5u4wo2iwdtfTebMWg ansible 
+
+- name: Ensure webadmin user exists (Ubuntu)
+  user:
+    name: webadmin
+    state: present
+    group: www-data
+  when: ansible_distribution == "Ubuntu"
+
+- name: Ensure webadmin user exists (Oracle Linux)
+  user:
+    name: webadmin
+    shell: /bin/bash
+    state: present
+    group: apache
+  when: ansible_distribution == "OracleLinux"
+

@@ -1,0 +1,182 @@
+  # to run this playbook
+#   $ ansible-playbook --ask-become srv_config.yml
+  # to list tags
+#   $ ansible-playbook --list-tags srv_config.yml
+  # to run playbook with a specific tag
+#   $ ansible-playbook --tags [tag-name] --ask-become srv_config.yml
+  # to run this playbook as remote_user oga
+#   $ ansible-playbook srv_config.yml
+---
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+    - name: Install Updates (Oracle Linux)
+      dnf:
+        update_only: yes
+        update_cache: yes
+      changed_when: false
+      when: ansible_distribution == "OracleLinux"
+
+    - name: Install Updates (Ubuntu Linux)
+      apt:
+        update_cache: yes
+      changed_when: false
+      when: ansible_distribution == "Ubuntu"
+
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Add ssh key for user oga
+      tags: always
+      authorized_key:
+        user: oga
+        key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICg1N3h0m0XujlaIn58Yv5d5EgA5u4wo2iwdtfTebMWg ansible 
+
+- name: Create user for managing web servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Ensure webadmin user exists (Ubuntu)
+      user:
+        name: webadmin
+        state: present
+        group: www-data
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Ensure webadmin user exists (Oracle Linux)
+      user:
+        name: webadmin
+        shell: /bin/bash
+        state: present
+        group: apache
+      when: ansible_distribution == "OracleLinux"
+
+
+- hosts: web_servers
+  become: true
+  tasks:
+
+    - name: Install apache2 & php packages
+      tags: apache,apache2,php,ubuntu
+      apt:
+        update_cache: yes
+        name:
+          - apache2
+          - libapache2-mod-php
+        state: latest
+      when: ansible_distribution == "Ubuntu"
+    
+    
+    - name: Install apache2 & php packages
+      tags: apache,httpd,php,oracleLinux
+      dnf:
+        update_cache: yes
+        name:
+          - httpd
+          - php
+        state: latest
+      when: ansible_distribution == "OracleLinux"
+
+    - name: Start httpd
+      tags: apache,apache2,httpd
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+      when: ansible_distribution == "OracleLinux" 
+
+    - name: Change e-mail address for admin (OracleLiniux)
+      tags: apache,httpd,admin, e-mail
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '^ServerAdmin'
+        line: ServerAdmin ayobamivikky@gmail.com
+      when: ansible_distribution == "OracleLinux"
+      register: httpd
+
+    - name: Restart httpd (OracleLinux)
+      tags: apache,httpd
+      service:
+        name: httpd
+        state: restarted
+      when: ansible_distribution == "OracleLinux" and httpd.changed
+
+    - name: Copy default html file to sites (on Ubuntu Linux)
+      tags: apache,apache2,httpd
+      copy:
+        src: default_site.html
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: 0644
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Copy default html file to sites (on Oracle Linux)
+      tags: apache,apache2,httpd
+      copy:
+        src: default_site.html
+        dest: /var/www/html/index.html
+        owner: apache
+        group: apache
+        mode: 0644
+      when: ansible_distribution == "OracleLinux"
+
+- hosts: db_servers
+  become: true
+  tasks: 
+
+  - name: Install MariaDB package (Oracle Linux)
+    tags: db,nmariadb,oracleLinux
+    dnf:
+      name: mariadb
+      state: latest
+    when: ansible_distribution == "OracleLinux"
+
+  - name: Install MariaDB package (Ubuntu)
+    tags: db,mariadb,ubuntu
+    apt:
+      name: mariadb-server
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+- hosts: file_servers
+  become: true
+  tasks:
+
+  - name: Install Samba package
+    tags: samba
+    package:
+      name: samba
+      state: latest
+
+  - name: Install unzip
+    tags: zip
+    package:
+      name: unzip
+      state: latest
+
+  - name: Install OpenTofu
+    unarchive:
+      src: https://github.com/opentofu/opentofu/releases/download/v1.6.2/tofu_1.6.2_linux_amd64.zip 
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      owner: root
+      group: root
+
+
+- hosts: WorkStations
+  become: true
+  tasks:
+
+  - name: Install gedit and vim on WorkStations
+    tags: gedit,vim,text_editors
+    package:
+      name:
+        - gedit
+        - vim
+      state: latest
+    
