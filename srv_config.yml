@@ -10,40 +10,30 @@
 
 - hosts: all
   become: true
-  tasks:
+  pre_tasks:
 
-    - name: Creating User oga
-      tags: always
-      user:
-        name: oga
-        groups: root
+    - name: Install Updates (Oracle Linux)
+      dnf:
+        update_only: yes
+        update_cache: yes
+      changed_when: false
+      when: ansible_distribution == "OracleLinux"
+
+    - name: Install Updates (Ubuntu Linux)
+      apt:
+        update_cache: yes
+      changed_when: false
+      when: ansible_distribution == "Ubuntu"
+
+- hosts: all
+  become: true
+  tasks:
 
     - name: Add ssh key for user oga
       tags: always
       authorized_key:
         user: oga
         key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICg1N3h0m0XujlaIn58Yv5d5EgA5u4wo2iwdtfTebMWg ansible 
-
-    - name: Add a sudoers file for user oga
-      tags: always
-      copy:
-        src: sudoer_oga
-        dest: /etc/sudoers.d/oga
-        owner: root
-        group: root
-        mode: 0440
-
-    - name: Install Updates (Oracle Linux)
-      dnf:
-        update_only: yes
-        update_cache: yes
-      when: ansible_distribution == "OracleLinux"
-
-    - name: Install Updates (Ubuntu Linux)
-      apt:
-        update_cache: yes
-      when: ansible_distribution == "Ubuntu"
-
 
 - name: Create user for managing web servers
   hosts: all
