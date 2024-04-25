@@ -57,7 +57,7 @@
       service:
         name: httpd
         state: restarted
-      when: ansible_distribution == "OracleLinux" && httpd.changed
+      when: ansible_distribution == "OracleLinux" and httpd.changed
 
     - name: Copy default html file to sites (on Ubuntu Linux)
       tags: apache,apache2,httpd
